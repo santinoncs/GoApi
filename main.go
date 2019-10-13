@@ -28,6 +28,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 )
 
 // Response : here you tell us what Response is
@@ -50,7 +51,6 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-
 
 	// call needed API method - first 4 methods
 
@@ -91,16 +91,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		values[key] = params.Get(key)
 	}
 
-	//fmt.Println(values)
-
-	fmt.Println(values["value"])
-
 	si := StringItem{}
-	
-	
 
 	if r.URL.Path == "/api/get" {
-		s,err := di.get(values["key"])
+		s, err := di.get(values["key"])
 		var value string
 		if err == nil {
 			stringItem := StringItem{}
@@ -112,17 +106,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			value = "The key was not defined"
 		}
-		
+
 		response := Response{Status: "OK", Body: value}
 		responseJSON, _ := json.Marshal(response)
 		fmt.Fprintf(w, "Response: %s\n", responseJSON)
+
 	}
 
 	if r.URL.Path == "/api/set" {
 		si.set(values["value"])
 		st := values["key"]
 		di.set(st, si)
-		response := Response{Status: "OK written", Body: st }
+		response := Response{Status: "OK written", Body: st}
 		responseJSON, _ := json.Marshal(response)
 		fmt.Fprintf(w, "Response: %s\n", responseJSON)
 	}
@@ -130,14 +125,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/api/rpush" {
 		li.rpush(values["value"])
 		di.set(values["key"], li)
-		response := Response{Status: "OK written", Body: "d" }
+		response := Response{Status: "OK written", Body: values["value"]}
 		responseJSON, _ := json.Marshal(response)
 		fmt.Fprintf(w, "Response: %s\n", responseJSON)
 	}
 
 	if r.URL.Path == "/api/rpop" {
-		s,err := di.get(values["key"])
-	
+		s, err := di.get(values["key"])
+
 		var output string
 		if err == nil {
 			listItem := ListItem{}
@@ -146,17 +141,36 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			}
 			val := listItem.get()
 			output = val[len(val)-1]
-			//val = val[:len(val)-1]
 
 		} else {
 			output = "The key was not defined"
-			
+
 		}
-		
-		response := Response{Status: "OK written", Body: output }
+
+		response := Response{Status: "OK written", Body: output}
+		responseJSON, _ := json.Marshal(response)
+		fmt.Fprintf(w, "Response: %s\n", responseJSON)
+	}
+
+	if r.URL.Path == "/api/llen" {
+		s, err := di.get(values["key"])
+
+		var output string
+		if err == nil {
+			listItem := ListItem{}
+			if s.dataType() == "list" {
+				listItem, _ = s.(ListItem)
+			}
+			val := listItem.get()
+			output = strconv.Itoa(len(val))
+
+		} else {
+			output = "there is no list"
+		}
+
+		response := Response{Status: "OK", Body: output}
 		responseJSON, _ := json.Marshal(response)
 		fmt.Fprintf(w, "Response: %s\n", responseJSON)
 	}
 
 }
-

@@ -69,6 +69,13 @@ func (li ListItem) get() []string {
   return li.value
 }
 
+// llen
+func (li ListItem) llen() int {
+  lenght := len(li.value)
+  return lenght
+}
+
+
 
 // Db : here you tell us what Db is
 type Db map[string]Item
