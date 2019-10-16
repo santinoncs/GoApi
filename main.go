@@ -131,14 +131,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/api/rpop" {
-		s, err := di.get(values["key"])
+		l, err := di.get(values["key"])
 		var output string
 		if err == nil {
 			listItem := ListItem{}
-			if s.dataType() == "list" {
-				listItem, _ = s.(ListItem)
+			if l.dataType() == "list" {
+				listItem, _ = l.(ListItem)
 			}
-			val := listItem.get()
+			val := listItem.value
 			output = val[len(val)-1]
 
 		} else {
@@ -152,15 +152,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/api/llen" {
-		s, err := di.get(values["key"])
+		l, err := di.get(values["key"])
 
 		var output string
 		if err == nil {
 			listItem := ListItem{}
-			if s.dataType() == "list" {
-				listItem, _ = s.(ListItem)
+			if l.dataType() == "list" {
+				listItem, _ = l.(ListItem)
 			}
-			val := listItem.get()
+			val := listItem.value
 			output = strconv.Itoa(len(val))
 
 		} else {

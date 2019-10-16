@@ -55,10 +55,11 @@ func (li ListItem) ttl() int {
 }
 
 
-
+/*
 func (li ListItem) get() []string {
   return li.value
 }
+*/
 
 // llen
 func (li ListItem) llen() int {
