@@ -54,16 +54,7 @@ func (li ListItem) ttl() int {
   return -1
 }
 
-// rpush
-func (li *ListItem) rpush(s string) {
-  li.value = append(li.value, s)
-}
 
-// rpop
-func (li ListItem) rpop() string {
-  last := li.value[len(li.value)-1]
-  return last
-}
 
 func (li ListItem) get() []string {
   return li.value

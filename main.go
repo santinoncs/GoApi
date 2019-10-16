@@ -123,7 +123,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/api/rpush" {
-		li.rpush(values["value"])
+		li.value = append(li.value, values["value"])
 		di.set(values["key"], li)
 		response := Response{Status: "OK written", Body: values["value"]}
 		responseJSON, _ := json.Marshal(response)
@@ -132,7 +132,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path == "/api/rpop" {
 		s, err := di.get(values["key"])
-
 		var output string
 		if err == nil {
 			listItem := ListItem{}
