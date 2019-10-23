@@ -42,7 +42,7 @@ var li ListItem
 
 func main() {
 	di = Db{}
-	li = ListItem{}
+	
 
 	http.HandleFunc("/", handler)
 	err := http.ListenAndServe(":8080", nil)
@@ -50,20 +50,28 @@ func main() {
 	fmt.Println(err)
 }
 
+func response(status string, body string) {
+
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
+
+	var value string
+	var status string
 
 	// call needed API method - first 4 methods
 
 	if r.URL.Path == "/api" {
-		fmt.Fprintf(w, "The methods are: \n/api\n/api/ping\n/api/set?key=<key>&value=<value>\n/api/get?key=<key>\n")
+		//fmt.Fprintf(w, "The methods are: \n/api\n/api/ping\n/api/set?key=<key>&value=<value>\n/api/get?key=<key>\n")
+		value = "The methods are: /api /api/ping /api/set?key=<key>&value=<value> /api/get?key=<key>"
+		status = "OK"
 	}
 
 	// call ping url
 
 	if r.URL.Path == "/api/ping" {
-		response := Response{Status: "OK", Body: "Pong"}
-		responseJSON, _ := json.Marshal(response)
-		fmt.Fprintf(w, "Response: %s\n", responseJSON)
+		value = "Pong"
+		status = "OK"
 	}
 
 	// any other url - returns the string "Method not supported"
@@ -72,10 +80,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	m2, _ := regexp.MatchString("/api$", r.URL.Path)
 
 	if !m1 && !m2 {
-		response := Response{Status: "Error", Body: "Method not supported"}
-		responseJSON, _ := json.Marshal(response)
-
-		fmt.Fprintf(w, "Response: %s\n", responseJSON)
+		value = "Method not supported"
+		status = "Error"
 	}
 
 	// implement URL parsing
@@ -95,81 +101,119 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path == "/api/get" {
 		s, err := di.get(values["key"])
-		var value string
 		if err == nil {
 			stringItem := StringItem{}
 			if s.dataType() == "string" {
 				stringItem, _ = s.(StringItem)
 			}
 			value = stringItem.get()
+			status = "OK"
 
 		} else {
 			value = "The key was not defined"
+			status = "Error"
 		}
 
-		response := Response{Status: "OK", Body: value}
-		responseJSON, _ := json.Marshal(response)
-		fmt.Fprintf(w, "Response: %s\n", responseJSON)
 
 	}
 
 	if r.URL.Path == "/api/set" {
 		si.set(values["value"])
-		st := values["key"]
-		di.set(st, si)
-		response := Response{Status: "OK written", Body: st}
-		responseJSON, _ := json.Marshal(response)
-		fmt.Fprintf(w, "Response: %s\n", responseJSON)
+		value = values["key"]
+		di.set(value, si)
+		status = "OK"
+
 	}
 
 	if r.URL.Path == "/api/rpush" {
-		li.value = append(li.value, values["value"])
-		di.set(values["key"], li)
-		response := Response{Status: "OK written", Body: values["value"]}
-		responseJSON, _ := json.Marshal(response)
-		fmt.Fprintf(w, "Response: %s\n", responseJSON)
+
+		li,err := di.get(values["key"])
+		if err == nil {
+			fmt.Println("ya existe el array")
+			listItem := ListItem{}
+			if li.dataType() == "list" {
+				listItem, _ = li.(ListItem)
+			
+				// append aqui
+				listItem.value = append(listItem.value, values["value"])
+
+				di.set(values["key"], listItem)
+				value = values["value"]
+				status = "OK"
+			}
+
+		} else {
+			fmt.Println("No existe el array")
+			listItem := ListItem{}
+			listItem, _ = li.(ListItem)
+			listItem.value = append(listItem.value, values["value"])
+			value = values["value"]
+			di.set(values["key"], listItem)
+			status = "OK"
+
+		}
+		
+		
+
 	}
 
 	if r.URL.Path == "/api/rpop" {
 		l, err := di.get(values["key"])
-		var output string
 		if err == nil {
 			listItem := ListItem{}
 			if l.dataType() == "list" {
 				listItem, _ = l.(ListItem)
+			
+				val := listItem.value
+				fmt.Println(listItem.value)
+				
+				if len(listItem.value) > 0 {
+					
+					value = val[len(val)-1]
+					listItem.value[len(val)-1] = ""
+					listItem.value = listItem.value[:len(listItem.value)-1]
+					fmt.Println(listItem.value)
+					di.set(values["key"], listItem)
+					status = "OK"
+
+				} else {
+					value = "The slice is empty"
+					status = "OK"
+				}
+
 			}
-			val := listItem.value
-			output = val[len(val)-1]
 
 		} else {
-			output = "The key was not defined"
+			value = "The key was not defined"
+			status = "Error"
 
 		}
 
-		response := Response{Status: "OK written", Body: output}
-		responseJSON, _ := json.Marshal(response)
-		fmt.Fprintf(w, "Response: %s\n", responseJSON)
+
 	}
 
 	if r.URL.Path == "/api/llen" {
 		l, err := di.get(values["key"])
 
-		var output string
 		if err == nil {
 			listItem := ListItem{}
 			if l.dataType() == "list" {
 				listItem, _ = l.(ListItem)
 			}
 			val := listItem.value
-			output = strconv.Itoa(len(val))
+			value = strconv.Itoa(len(val))
+			status = "OK"
 
 		} else {
-			output = "there is no list"
+			value = "there is no list"
+			status = "Error"
 		}
 
-		response := Response{Status: "OK", Body: output}
-		responseJSON, _ := json.Marshal(response)
-		fmt.Fprintf(w, "Response: %s\n", responseJSON)
+
 	}
+
+	response := Response{Status: status, Body: value}
+	responseJSON, _ := json.Marshal(response)
+	fmt.Fprintf(w, "Response: %s\n", responseJSON)
 
 }
