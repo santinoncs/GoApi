@@ -29,7 +29,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
-	"db/db"
+	db "github.com/santinoncs/GoApi/db"
 )
 
 // Response : here you tell us what Response is
@@ -38,11 +38,11 @@ type Response struct {
 	Body   string `json:"body"`
 }
 
-var di Db
-var li ListItem
+var di db.Db
+var li db.ListItem
 
 func main() {
-	di = Db{}
+	di = db.Db{}
 	
 
 	http.HandleFunc("/", handler)
@@ -97,16 +97,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		values[key] = params.Get(key)
 	}
 
-	si := StringItem{}
+	si := db.StringItem{}
 
 	if r.URL.Path == "/api/get" {
-		s, err := di.get(values["key"])
+		s, err := di.Get(values["key"])
 		if err == nil {
-			stringItem := StringItem{}
-			if s.dataType() == "string" {
-				stringItem, _ = s.(StringItem)
+			stringItem := db.StringItem{}
+			if s.DataType() == "string" {
+				stringItem, _ = s.(db.StringItem)
 			}
-			value = stringItem.get()
+			value = stringItem.Get()
 			status = "OK"
 
 		} else {
@@ -118,37 +118,37 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/api/set" {
-		si.set(values["value"])
+		si.Set(values["value"])
 		value = values["key"]
-		di.set(value, si)
+		di.Set(value, si)
 		status = "OK"
 
 	}
 
 	if r.URL.Path == "/api/rpush" {
 
-		li,err := di.get(values["key"])
+		li,err := di.Get(values["key"])
 		if err == nil {
 			fmt.Println("ya existe el array")
-			listItem := ListItem{}
+			listItem := db.ListItem{}
 			// how do you know this type is listitem, here?
-			if li.dataType() == "list" {
-				listItem, _ = li.(ListItem)
+			if li.DataType() == "list" {
+				listItem, _ = li.(db.ListItem)
 			
-				listItem.value = append(listItem.value, values["value"])
+				listItem.Value = append(listItem.Value, values["value"])
 
-				di.set(values["key"], listItem)
+				di.Set(values["key"], listItem)
 				value = values["value"]
 				status = "OK"
 			}
 
 		} else {
 			fmt.Println("No existe el array")
-			listItem := ListItem{}
-			listItem, _ = li.(ListItem)
-			listItem.value = append(listItem.value, values["value"])
+			listItem := db.ListItem{}
+			listItem, _ = li.(db.ListItem)
+			listItem.Value = append(listItem.Value, values["value"])
 			value = values["value"]
-			di.set(values["key"], listItem)
+			di.Set(values["key"], listItem)
 			status = "OK"
 
 		}
@@ -158,22 +158,22 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/api/rpop" {
-		l, err := di.get(values["key"])
+		l, err := di.Get(values["key"])
 		if err == nil {
-			listItem := ListItem{}
-			if l.dataType() == "list" {
-				listItem, _ = l.(ListItem)
+			listItem := db.ListItem{}
+			if l.DataType() == "list" {
+				listItem, _ = l.(db.ListItem)
 			
-				val := listItem.value
-				fmt.Println(listItem.value)
+				val := listItem.Value
+				fmt.Println(listItem.Value)
 				
-				if len(listItem.value) > 0 {
+				if len(listItem.Value) > 0 {
 					
 					value = val[len(val)-1]
-					listItem.value[len(val)-1] = ""
-					listItem.value = listItem.value[:len(listItem.value)-1]
-					fmt.Println(listItem.value)
-					di.set(values["key"], listItem)
+					listItem.Value[len(val)-1] = ""
+					listItem.Value = listItem.Value[:len(listItem.Value)-1]
+					fmt.Println(listItem.Value)
+					di.Set(values["key"], listItem)
 					status = "OK"
 
 				} else {
@@ -193,14 +193,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/api/llen" {
-		l, err := di.get(values["key"])
+		l, err := di.Get(values["key"])
 
 		if err == nil {
-			listItem := ListItem{}
-			if l.dataType() == "list" {
-				listItem, _ = l.(ListItem)
+			listItem := db.ListItem{}
+			if l.DataType() == "list" {
+				listItem, _ = l.(db.ListItem)
 			}
-			val := listItem.value
+			val := listItem.Value
 			value = strconv.Itoa(len(val))
 			status = "OK"
 

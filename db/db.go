@@ -7,18 +7,18 @@ import (
 
 // Item : here you tell us what Item is
 type Item interface {
-  dataType() string
+  DataType() string
   ttl() int
 }
 
 // StringItem : here you tell us what StringItem is
 type StringItem struct {
-  value string
+  Value string
   expiresAt time.Time
 }
 
 // Returns data type
-func (si StringItem) dataType() string {
+func (si StringItem) DataType() string {
     return "string"
 }
 
@@ -28,23 +28,23 @@ func (si StringItem) ttl() int {
 }
 
 // setter
-func (si *StringItem) set(s string) {
-  si.value = s
+func (si *StringItem) Set(s string) {
+  si.Value = s
 }
 
-// getter
-func (si StringItem) get() string {
-  return si.value
+// Getter
+func (si StringItem) Get() string {
+  return si.Value
 }
 
 // ListItem : here you tell us what ListItem is
 type ListItem struct {
-  value []string
+  Value []string
   expiresAt time.Time
 }
 
 // Returns data type
-func (li ListItem) dataType() string {
+func (li ListItem) DataType() string {
     return "list"
 }
 
@@ -62,7 +62,7 @@ func (li ListItem) get() []string {
 
 // llen
 func (li ListItem) llen() int {
-  lenght := len(li.value)
+  lenght := len(li.Value)
   return lenght
 }
 
@@ -72,12 +72,12 @@ func (li ListItem) llen() int {
 type Db map[string]Item
 
 // implement set() and get() methods for Db type
-func (di Db) set(key string, i1 Item) {
+func (di Db) Set(key string, i1 Item) {
   di[key] = i1
 }
 
 
-func (di Db) get(key string) (Item,error) {
+func (di Db) Get(key string) (Item,error) {
   if it, ok := di[key]; ok {
     return it,nil
   } 
