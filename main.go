@@ -29,6 +29,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"db/db"
 )
 
 // Response : here you tell us what Response is
@@ -62,7 +63,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// call needed API method - first 4 methods
 
 	if r.URL.Path == "/api" {
-		//fmt.Fprintf(w, "The methods are: \n/api\n/api/ping\n/api/set?key=<key>&value=<value>\n/api/get?key=<key>\n")
 		value = "The methods are: /api /api/ping /api/set?key=<key>&value=<value> /api/get?key=<key>"
 		status = "OK"
 	}
@@ -131,10 +131,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			fmt.Println("ya existe el array")
 			listItem := ListItem{}
+			// how do you know this type is listitem, here?
 			if li.dataType() == "list" {
 				listItem, _ = li.(ListItem)
 			
-				// append aqui
 				listItem.value = append(listItem.value, values["value"])
 
 				di.set(values["key"], listItem)

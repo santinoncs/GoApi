@@ -1,8 +1,7 @@
-package main
+package db
 
 import (
   "time"
-  //"fmt"
   "errors"
 )
 
@@ -73,10 +72,8 @@ func (li ListItem) llen() int {
 type Db map[string]Item
 
 // implement set() and get() methods for Db type
-
 func (di Db) set(key string, i1 Item) {
   di[key] = i1
-  //fmt.Println(di[key])
 }
 
 
